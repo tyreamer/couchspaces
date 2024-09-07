@@ -1,0 +1,6 @@
+@couchspacesBackend_HostAddress = http://localhost:5014
+
+GET {{couchspacesBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,42 @@
+﻿@page "/join-space"
+@inject couchspaces.Services.SpaceService SpaceService
+@inject NavigationManager NavigationManager
+@using couchspaces.Models
+
+<h3>Join Space</h3>
+<input @bind="spaceId" placeholder="Space ID" />
+<input @bind="userName" placeholder="Your Name" />
+<button @onclick="JoinSpaceHandler">Join</button>
+
+@if (users != null && users.Count > 0)
+{
+    <h4>Users in this space:</h4>
+    <ul>
+        @foreach (var user in users)
+        {
+            <li>@user.Name</li>
+        }
+    </ul>
+}
+
+@code {
+    private string spaceId = string.Empty;
+    private string userName = string.Empty;
+    private List<User> users = new List<User>();
+
+    private void JoinSpaceHandler()
+    {
+        var user = new User { Id = Guid.NewGuid().ToString(), Name = userName };
+        SpaceService.AddUserToSpace(spaceId, user);
+        // Navigate to the space page
+        NavigationManager.NavigateTo($"/space/{spaceId}");
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(spaceId))
+        {
+            users = SpaceService.GetUsersInSpace(spaceId);
+        }
+    }
+}

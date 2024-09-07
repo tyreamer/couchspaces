@@ -1,0 +1,42 @@
+﻿@page "/login"
+@inject couchspaces.Services.FirebaseService FirebaseService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorageService
+@inject couchspaces.Services.StateProvider StateProvider
+@inject NavigationManager NavigationManager
+
+@using System.Security.Claims
+
+<h3>Login</h3>
+<button @onclick="SignIn">Sign in with Google</button>
+
+@code {
+    private async Task SignIn()
+    {
+        var userInfo = await FirebaseService.SignInWithGoogleAsync();
+        if (userInfo != null)
+        {
+            await LocalStorageService.SetItemAsync("userId", userInfo["token"]);
+            await LocalStorageService.SetItemAsync("userEmail", userInfo["email"]);
+            await LocalStorageService.SetItemAsync("userName", userInfo["name"]);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, userInfo["token"]),
+                new Claim(ClaimTypes.Email, userInfo["email"]),
+                new Claim(ClaimTypes.Name, userInfo["name"])
+            };
+            var identity = new ClaimsIdentity(claims, "authentication");
+            var user = new ClaimsPrincipal(identity);
+
+            StateProvider.NotifyUserAuthentication(user);
+
+            // Navigate to the home page or another protected page
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            // Handle sign-in failure
+            Console.WriteLine("Sign-in failed.");
+        }
+    }
+}

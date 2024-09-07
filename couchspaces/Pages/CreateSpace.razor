@@ -1,0 +1,19 @@
+﻿@page "/create-space"
+@using couchspaces.Services
+@inject NavigationManager NavigationManager
+@inject couchspaces.Services.SpaceService SpaceService
+
+<h3>Create Space</h3>
+<input @bind="spaceName" placeholder="Space Name" />
+<button @onclick="CreateSpaceHandler">Create</button>
+
+@code {
+    private string spaceName = string.Empty;
+
+    private void CreateSpaceHandler()
+    {
+        var space = SpaceService.CreateSpace(spaceName);
+        // Navigate to the space page
+        NavigationManager.NavigateTo($"/space/{space.Id}");
+    }
+}
