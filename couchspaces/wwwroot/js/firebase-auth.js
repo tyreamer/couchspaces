@@ -1,5 +1,5 @@
 ﻿import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
 
 const firebaseConfig = {
     apiKey: 'AIzaSyBsZUY1oKZ4Pt0_yenRbDgTfROE9HaJN3g',
@@ -54,7 +54,7 @@ window.firebaseAuth = {
                         enrolledFactors: user.multiFactor.enrolledFactors
                     } : null
                 };
-                localStorage.setItem('firebaseUser', JSON.stringify(userData));
+                localStorage.setItem('couchspacesUser', JSON.stringify(userData));
                 startTokenValidationCheck(userData);
                 return userData;
             } else {
@@ -64,6 +64,16 @@ window.firebaseAuth = {
         } catch (error) {
             console.error("Error signing in with Google: ", error);
             return null;
+        }
+    },
+
+    signOut: async function () {
+        try {
+            await signOut(auth);
+            localStorage.removeItem('couchspacesUser');
+            updateUI(null);
+        } catch (error) {
+            console.error("Error signing out: ", error);
         }
     },
 
@@ -96,16 +106,21 @@ window.firebaseAuth = {
 function startTokenValidationCheck(user) {
     setInterval(async () => {
         if (user && user.stsTokenManager) {
-            const tokenResult = await auth.currentUser.getIdTokenResult();
-            if (!window.firebaseAuth.isTokenValid(tokenResult.expirationTime)) {
-                const refreshedToken = await window.firebaseAuth.refreshToken();
-                if (refreshedToken) {
-                    user.stsTokenManager.accessToken = refreshedToken.accessToken;
-                    user.stsTokenManager.expirationTime = refreshedToken.expirationTime;
-                    updateUI(user);
-                } else {
-                    console.error("Failed to refresh token");
+            try {
+                const tokenResult = await auth.currentUser.getIdTokenResult();
+                if (!window.firebaseAuth.isTokenValid(tokenResult.expirationTime)) {
+                    const refreshedToken = await window.firebaseAuth.refreshToken();
+                    if (refreshedToken) {
+                        user.stsTokenManager.accessToken = refreshedToken.accessToken;
+                        user.stsTokenManager.expirationTime = refreshedToken.expirationTime;
+                        localStorage.setItem('couchspacesUser', JSON.stringify(user)); // Update localStorage
+                        updateUI(user);
+                    } else {
+                        console.error("Failed to refresh token");
+                    }
                 }
+            } catch (error) {
+                console.error("Error during token validation check: ", error);
             }
         } else {
             console.error("User or stsTokenManager is null during token validation check");
@@ -114,6 +129,11 @@ function startTokenValidationCheck(user) {
 }
 
 window.updateUI = function (user) {
+    if (!user || !user.stsTokenManager) {
+        document.getElementById('login-button').style.display = 'block';
+        document.getElementById('user-info').style.display = 'none';
+        return;
+    }
     document.getElementById('login-button').style.display = 'none';
     document.getElementById('user-info').style.display = 'block';
     document.getElementById('user-name').innerText = `Name: ${user.displayName}`;
@@ -123,7 +143,7 @@ window.updateUI = function (user) {
 
 // Check authentication state on page load
 window.addEventListener('load', async () => {
-    const storedUser = localStorage.getItem('firebaseUser');
+    const storedUser = localStorage.getItem('couchspacesUser');
     if (storedUser) {
         const user = JSON.parse(storedUser);
         if (window.firebaseAuth.isTokenValid(user.stsTokenManager.expirationTime)) {
@@ -134,7 +154,7 @@ window.addEventListener('load', async () => {
             if (refreshedToken) {
                 user.stsTokenManager.accessToken = refreshedToken.accessToken;
                 user.stsTokenManager.expirationTime = refreshedToken.expirationTime;
-                localStorage.setItem('firebaseUser', JSON.stringify(user));
+                localStorage.setItem('couchspacesUser', JSON.stringify(user));
                 updateUI(user);
                 startTokenValidationCheck(user);
             } else {

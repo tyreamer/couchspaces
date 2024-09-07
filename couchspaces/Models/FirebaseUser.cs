@@ -11,9 +11,6 @@
         public bool IsAnonymous { get; set; }
         public object TenantId { get; set; }
         public List<ProviderData> ProviderData { get; set; }
-        public string ApiKey { get; set; }
-        public string AppName { get; set; }
-        public string AuthDomain { get; set; }
         public StsTokenManager StsTokenManager { get; set; }
         public object RedirectEventId { get; set; }
         public string LastLoginAt { get; set; }

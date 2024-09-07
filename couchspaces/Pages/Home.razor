@@ -1,58 +1,38 @@
 ﻿@page "/"
-@using Microsoft.JSInterop
-@inject IJSRuntime JSRuntime
-@inject couchspaces.Services.TokenManagerService TokenManagerService
-@using couchspaces.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using couchspaces.Services
+@inject FirebaseService FirebaseService
+@inject AuthenticationStateProvider AuthStateProvider
 
 <h3>Welcome to CouchSpaces</h3>
-<button @onclick="SignInWithGoogle" id="login-button">Sign In with Google</button>
-<div id="user-info" style="display: none;">
-    <p id="user-name"></p>
-    <p id="user-email"></p>
-    <p id="user-token"></p>
-</div>
+<AuthorizeView>
+    <Authorized>
+        <button @onclick="SignOut" id="logout-button">Logout</button>
+        <div id="user-info">
+            <p id="user-name">Name: @(context.User.Identity?.Name ?? "Unknown")</p>
+            <p id="user-email">Email: @(context.User.FindFirst(ClaimTypes.Email)?.Value ?? "Unknown")</p>
+            <p id="user-token">Token: @(context.User.FindFirst("Token")?.Value ?? "Unknown")</p>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <button @onclick="SignInWithGoogle" id="login-button">Sign In with Google</button>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     private async Task SignInWithGoogle()
     {
-        var firebaseUser = await JSRuntime.InvokeAsync<FirebaseUser>("firebaseAuth.signInWithGoogle");
-        if (firebaseUser != null && firebaseUser.StsTokenManager != null)
+        var firebaseUser = await FirebaseService.SignInWithGoogleAsync();
+        if (firebaseUser != null)
         {
-            var token = firebaseUser.StsTokenManager.AccessToken;
-            if (!string.IsNullOrEmpty(token))
-            {
-                TokenManagerService.StartTokenValidation(token);
-
-                var user = new User
-                    {
-                        Id = firebaseUser.Uid,
-                        Name = firebaseUser.DisplayName?.ToString() ?? string.Empty,
-                        Claims = new Dictionary<string, string>
-                        {
-                            { "email", firebaseUser.Email },
-                            { "token", token }
-                        },
-                        IsReady = true
-                    };
-
-                // If we're here, then the user is authenticated
-                User.IsAuthenticated = true;
-
-                await JSRuntime.InvokeVoidAsync("updateUI", new
-                {
-                    displayName = user.Name,
-                    email = user.Claims["email"],
-                    token = user.Claims["token"]
-                });
-            }
-            else
-            {
-                Console.Error.WriteLine("Token is null or empty");
-            }
+            var customAuthStateProvider = (CouchspacesAuthenticationStateProvider)AuthStateProvider;
+            await customAuthStateProvider.MarkUserAsAuthenticated(firebaseUser);
         }
-        else
-        {
-            Console.Error.WriteLine("Firebase user or stsTokenManager is null");
-        }
+    }
+
+    private async Task SignOut()
+    {
+        await FirebaseService.SignOutAsync();
     }
 }

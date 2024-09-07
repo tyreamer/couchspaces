@@ -1,20 +1,23 @@
-using couchspaces;
-using couchspaces.Services;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using couchspaces.Services;
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Authorization;
+using couchspaces;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
-builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5050/") });
+// Register services
 builder.Services.AddScoped<FirebaseService>();
-builder.Services.AddScoped<AuthenticationStateProvider, StateProvider>();
-builder.Services.AddScoped<TokenValidationService>();
 builder.Services.AddScoped<TokenManagerService>();
+builder.Services.AddScoped<TokenValidationService>();
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddScoped<CouchspacesAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<CouchspacesAuthenticationStateProvider>());
+
+// Register authorization services
 builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();

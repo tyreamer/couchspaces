@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Initialize Firebase Admin SDK
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile("D:\\Projects\\couchspaces\\couchspacesBackend\\couchspaces_fb_key.json") //TODO: convert to environment variable
+    Credential = GoogleCredential.FromFile("D:\\Projects\\couchspaces\\couchspacesBackend\\couchspaces-firebase-adminsdk-5tn0i-90922ab37a.json") //TODO: convert to environment variable
 });
 
 // Add services to the container.
