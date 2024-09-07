@@ -5,20 +5,29 @@
 @inject FirebaseService FirebaseService
 @inject AuthenticationStateProvider AuthStateProvider
 
-<h3>Welcome to CouchSpaces</h3>
-<AuthorizeView>
-    <Authorized>
-        <button @onclick="SignOut" id="logout-button">Logout</button>
-        <div id="user-info">
-            <p id="user-name">Name: @(context.User.Identity?.Name ?? "Unknown")</p>
-            <p id="user-email">Email: @(context.User.FindFirst(ClaimTypes.Email)?.Value ?? "Unknown")</p>
-            <p id="user-token">Token: @(context.User.FindFirst("Token")?.Value ?? "Unknown")</p>
-        </div>
-    </Authorized>
-    <NotAuthorized>
-        <button @onclick="SignInWithGoogle" id="login-button">Sign In with Google</button>
-    </NotAuthorized>
-</AuthorizeView>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-5">
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h3" Align="Align.Center">couchspaces</MudText>
+        <MudText Typo="Typo.subtitle1" Align="Align.Center">Watch shows together with friends and family.</MudText>
+        <AuthorizeView>
+            <Authorized>
+                <MudGrid Justify="Justify.Center">
+                    <MudItem>
+                        <MudText>Hello,@(context.User.Identity?.Name) </MudText>
+                        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="SignOut" Class="mt-4">Logout</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </Authorized>
+            <NotAuthorized>
+                <MudGrid Justify="Justify.Center">
+                    <MudItem>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SignInWithGoogle" Class="mt-4">Sign In with Google</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudPaper>
+</MudContainer>
 
 @code {
     private async Task SignInWithGoogle()

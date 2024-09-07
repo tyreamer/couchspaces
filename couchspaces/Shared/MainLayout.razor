@@ -1,5 +1,68 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JsRuntime
+@using MudBlazor
 
-<PageTitle>couchspaces</PageTitle>
+<MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="_isDarkMode" Theme="@CouchspacesTheme" DefaultScrollbar="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-@Body
+<MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode" />
+
+<MudLayout>
+    <MudAppBar Color="Color.Primary" Elevation="4">
+        <MudText Typo="Typo.h6">CouchSpaces</MudText>
+    </MudAppBar>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+    <div class="mud-footer">
+        <MudText Align="Align.Center">© 2024 CouchSpaces</MudText>
+    </div>
+</MudLayout>
+
+@code {
+    private bool _isDarkMode;
+    private MudThemeProvider _mudThemeProvider;
+
+    private MudTheme CouchspacesTheme = new MudTheme()
+        {
+            PaletteLight = new PaletteLight()
+            {
+                Primary = Colors.Blue.Default,
+                Secondary = Colors.Green.Accent4,
+                Background = Colors.Gray.Lighten5,
+                AppbarBackground = Colors.Blue.Darken4,
+                DrawerBackground = Colors.Blue.Darken4,
+                DrawerText = Colors.Shades.White,
+                DrawerIcon = Colors.Shades.White
+            },
+            PaletteDark = new PaletteDark()
+            {
+                Primary = Colors.Blue.Lighten3,
+                Secondary = Colors.Green.Accent4,
+                Background = Colors.Gray.Darken4,
+                AppbarBackground = Colors.Blue.Darken4,
+                DrawerBackground = Colors.Blue.Darken4,
+                DrawerText = Colors.Shades.White,
+                DrawerIcon = Colors.Shades.White
+            }
+        };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+            StateHasChanged();
+        }
+    }
+
+    private Task OnSystemPreferenceChanged(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+}
