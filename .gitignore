@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/couchspacesBackend/couchspaces-firebase-adminsdk-5tn0i-90922ab37a.json
