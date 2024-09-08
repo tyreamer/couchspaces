@@ -1,12 +1,14 @@
 ﻿@page "/space/{spaceId}"
-@using Microsoft.AspNetCore.SignalR.Client
+@using couchspaces.Components
 @inject NavigationManager Navigation
 @inject SpaceService SpaceService
+@inject SignalRService SignalRService
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudPaper Class="pa-4">
-        <MudText Typo="Typo.h4">Couchspace</MudText>
+        <MudText Typo="Typo.h6">Space Name: @spaceName</MudText>
         <MudText Typo="Typo.h6">Space ID: @spaceId</MudText>
+        <MudText Typo="Typo.body1">Connection Status: @connectionStatus</MudText>
         <UserListComponent SpaceId="spaceId" />
         <ChatComponent SpaceId="spaceId" />
         <ReactionsComponent SpaceId="spaceId" />
@@ -21,8 +23,33 @@
     [Parameter]
     public string spaceId { get; set; }
 
+    private string spaceName;
+    private string connectionStatus = "Disconnected";
+
     protected override async Task OnInitializedAsync()
     {
-        // Initialize any necessary data or services here
+        // Retrieve the space name using the spaceId
+        var space = SpaceService.GetSpace(spaceId);
+        spaceName = space?.Name ?? "Unknown";
+
+        SignalRService.HubConnection.Closed += async (error) =>
+        {
+            connectionStatus = "Disconnected";
+            StateHasChanged();
+            await Task.Delay(new Random().Next(0, 5) * 1000);
+            await SignalRService.StartConnectionAsync();
+        };
+
+        try
+        {
+            await SignalRService.StartConnectionAsync();
+            connectionStatus = "Connected";
+        }
+        catch (Exception ex)
+        {
+            connectionStatus = $"Error: {ex.Message}";
+        }
+
+        StateHasChanged();
     }
 }

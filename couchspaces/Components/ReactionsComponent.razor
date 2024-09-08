@@ -1,0 +1,50 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@inject SignalRService SignalRService
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<MudButton OnClick="SendReaction" Variant="Variant.Filled">React</MudButton>
+
+@code {
+    [Parameter]
+    public string? SpaceId { get; set; } // Make SpaceId nullable
+
+    private string userDisplayName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            userDisplayName = user.Identity.Name; // Extract the display name from the authentication token
+        }
+        else
+        {
+            userDisplayName = "Guest";
+        }
+
+        SignalRService.HubConnection.On<string, string>("ReceiveReaction", (user, reaction) =>
+        {
+            var encodedReaction = $"{user}: {reaction}";
+            ShowReaction(encodedReaction);
+        });
+
+        await SignalRService.StartConnectionAsync();
+    }
+
+    private async Task SendReaction()
+    {
+        await SignalRService.HubConnection.SendAsync("SendReaction", userDisplayName, "👍");
+    }
+
+    private void ShowReaction(string reaction)
+    {
+        Snackbar.Add(reaction, Severity.Info, config =>
+        {
+            config.VisibleStateDuration = 5000;
+        });
+    }
+}
+
