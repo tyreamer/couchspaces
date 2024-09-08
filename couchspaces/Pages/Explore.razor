@@ -1,0 +1,18 @@
+﻿@page "/explore"
+
+<MudContainer Class="d-flex justify-center align-center" Style="height: 100vh;">
+    <MudPaper Class="pa-4" Style="max-width: 800px; width: 100%; text-align: center;">
+        <MudText Typo="Typo.h4" Class="mb-4">What's trending?</MudText>
+        <MudDivider Class="mb-4" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NavigateToHome">
+            Back to Home
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private void NavigateToHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

@@ -1,13 +1,31 @@
 ﻿@page "/create-space"
+@using Microsoft.AspNetCore.Components.Authorization
 @using couchspaces.Services
+@using System.Security.Claims
 @inject NavigationManager NavigationManager
-@inject couchspaces.Services.SpaceService SpaceService
+@inject SpaceService SpaceService
+@inject AuthenticationStateProvider AuthStateProvider
 
-<h3>Create Space</h3>
-<input @bind="spaceName" placeholder="Space Name" />
-<button @onclick="CreateSpaceHandler">Create</button>
+<AuthorizeView>
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h4">Create a new space</MudText>
+                <MudTextField @bind-Value="spaceName" Label="Space Name" Required="true" />
+                <MudButton OnClick="CreateSpaceHandler" Variant="Variant.Filled" Disabled="@string.IsNullOrEmpty(spaceName)">
+                    Create
+                </MudButton>
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo="Typo.h6">You are not authorized to create a space. Redirecting...</MudText>
+        <MudAlert>Unauthorized</MudAlert>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; }
     private string spaceName = string.Empty;
 
     private void CreateSpaceHandler()
@@ -16,4 +34,16 @@
         // Navigate to the space page
         NavigationManager.NavigateTo($"/space/{space.Id}");
     }
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var authState = await AuthStateTask;
+    //     var user = authState.User;
+
+    //     if (!user.Identity.IsAuthenticated)
+    //     {
+    //         Console.WriteLine("User still not authorized, redirecting to home.");
+    //         NavigationManager.NavigateTo("/");
+    //     }
+    // }
 }

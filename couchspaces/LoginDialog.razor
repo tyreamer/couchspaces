@@ -1,0 +1,27 @@
+﻿@inject IJSRuntime JsRuntime
+@inject FirebaseService FirebaseService
+@inject AuthenticationStateProvider AuthStateProvider
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    private async Task SignInWithGoogle()
+    {
+        var firebaseUser = await FirebaseService.SignInWithGoogleAsync();
+        if (firebaseUser != null)
+        {
+            if (AuthStateProvider is CouchspacesAuthenticationStateProvider customAuthStateProvider)
+            {
+                await customAuthStateProvider.MarkUserAsAuthenticated(firebaseUser);
+            }
+            // Close the dialog after successful sign-in
+            MudDialog.Close();
+        }
+    }
+}
+
+<MudDialog>
+    <DialogContent>
+        <!-- Your dialog content here -->
+    </DialogContent>
+</MudDialog>

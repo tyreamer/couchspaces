@@ -1,47 +1,89 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+@using couchspaces.Models
 @using couchspaces.Services
+@using Microsoft.AspNetCore.Components
+@inject IJSRuntime JsRuntime
 @inject FirebaseService FirebaseService
-@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-5">
-    <MudPaper Class="pa-4">
-        <MudText Typo="Typo.h3" Align="Align.Center">couchspaces</MudText>
-        <MudText Typo="Typo.subtitle1" Align="Align.Center">Watch shows together with friends and family.</MudText>
+<MudGrid JustifyContent="Center" AlignItems="Center" Style="height: 100vh;">
+    <MudItem JustifyContent="Center" AlignItems="Center">
         <AuthorizeView>
             <Authorized>
-                <MudGrid Justify="Justify.Center">
-                    <MudItem>
-                        <MudText>Hello,@(context.User.Identity?.Name) </MudText>
-                        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="SignOut" Class="mt-4">Logout</MudButton>
-                    </MudItem>
-                </MudGrid>
+                <MudPaper Class="pa-4">
+                    <MudImage Src="images/logo.png" Fluid="true" />
+                    <MudDivider Class="mb-4" />
+                    <MudButton OnClick="CreateNewCouchspace" Variant="Variant.Filled">
+                        Create New Space
+                    </MudButton>
+                </MudPaper>
             </Authorized>
             <NotAuthorized>
-                <MudGrid Justify="Justify.Center">
-                    <MudItem>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SignInWithGoogle" Class="mt-4">Sign In with Google</MudButton>
-                    </MudItem>
-                </MudGrid>
+                <MudPaper Class="pa-4">
+                    <MudImage Src="images/logo.png" Fluid="true" />
+                    <MudDivider Class="mb-4" />
+                    <MudStack AlignItems="AlignItems.Center" JustifyContent="Center" Spacing="2">
+                        <MudButton Class="google-sign-in-button" OnClick="SignInWithGoogle">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" />
+                            Sign in with Google
+                        </MudButton>
+                        <MudText>- or -</MudText>
+                        <MudButton id="exploreButton" OnClick="Explore" Variant="Variant.Outlined">
+                            Explore
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
             </NotAuthorized>
         </AuthorizeView>
-    </MudPaper>
-</MudContainer>
+    </MudItem>
+</MudGrid>
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; }
+
     private async Task SignInWithGoogle()
     {
         var firebaseUser = await FirebaseService.SignInWithGoogleAsync();
         if (firebaseUser != null)
         {
-            var customAuthStateProvider = (CouchspacesAuthenticationStateProvider)AuthStateProvider;
-            await customAuthStateProvider.MarkUserAsAuthenticated(firebaseUser);
+            if (AuthStateProvider is CouchspacesAuthenticationStateProvider customAuthStateProvider)
+            {
+                await customAuthStateProvider.MarkUserAsAuthenticated(firebaseUser);
+            }
         }
     }
 
-    private async Task SignOut()
+    private async Task CheckAuthenticationState()
     {
-        await FirebaseService.SignOutAsync();
+        var authState = await AuthStateTask;
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var userName = user.FindFirst(ClaimTypes.Name)?.Value;
+            Console.WriteLine($"User is authenticated: {userName}");
+        }
+        else
+        {
+            // User is not authenticated
+            Console.WriteLine("User is not authenticated");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationState();
+    }
+
+    private void Explore()
+    {
+        Navigation.NavigateTo("/explore");
+    }
+
+    private void CreateNewCouchspace()
+    {
+        Navigation.NavigateTo("/create-space");
     }
 }

@@ -9,12 +9,12 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 
 // Register services
+builder.Services.AddScoped<SpaceService>();
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<TokenManagerService>();
 builder.Services.AddScoped<TokenValidationService>();
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddScoped<CouchspacesAuthenticationStateProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<CouchspacesAuthenticationStateProvider>());
+builder.Services.AddScoped<AuthenticationStateProvider, CouchspacesAuthenticationStateProvider>();
 builder.Services.AddMudServices();
 builder.Services.AddAuthorizationCore();
 
