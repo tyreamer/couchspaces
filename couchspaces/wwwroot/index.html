@@ -6,16 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>couchspaces</title>
     <base href="/" />
+
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 
-    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <!-- Firebase App is always required and must be listed first -->
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <!-- Add Firebase products that you want to use -->
+    <!-- Add Firebase products -->
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script type="module" src="js/firebase-auth.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <!-- If you add any scoped CSS files, uncomment the following to load them
-    <link href="couchspaces.styles.css" rel="stylesheet" /> -->
+    <!-- couchspaces -->
+    <script src="js/couchspaces.js"></script>
+    <script type="module" src="js/firebase-auth.js"></script>
 </head>
 
 <body>
@@ -34,6 +40,7 @@
     </div>
 
     <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
 
 </html>

@@ -12,7 +12,7 @@ namespace couchspaces.Services
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = name,
-                Users = [] // Initialize the Users list
+                Users = []
             };
 
             _spaces.Add(space);

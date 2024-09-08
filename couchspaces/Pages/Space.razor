@@ -1,0 +1,28 @@
+﻿@page "/space/{spaceId}"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+@inject SpaceService SpaceService
+
+<MudContainer MaxWidth="MaxWidth.Medium">
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h4">Couchspace</MudText>
+        <MudText Typo="Typo.h6">Space ID: @spaceId</MudText>
+        <UserListComponent SpaceId="spaceId" />
+        <ChatComponent SpaceId="spaceId" />
+        <ReactionsComponent SpaceId="spaceId" />
+        <MediaComponent SpaceId="spaceId" />
+        <ShowEventComponent SpaceId="spaceId" />
+        <TimestampComponent SpaceId="spaceId" />
+        <PlayPauseComponent SpaceId="spaceId" />
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public string spaceId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize any necessary data or services here
+    }
+}

@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "couchspaces", "couchspaces\couchspaces.csproj", "{A07AC9F5-24C4-4969-921A-C341F1F98583}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "couchspacesBackend", "couchspacesBackend\couchspacesBackend.csproj", "{B897D576-6C07-41EC-ACD8-9B7647420517}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "couchspacesBackend", "couchspacesBackend\couchspacesBackend.csproj", "{B897D576-6C07-41EC-ACD8-9B7647420517}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

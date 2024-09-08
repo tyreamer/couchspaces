@@ -1,5 +1,107 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JsRuntime
+@using MudBlazor
+@inject FirebaseService FirebaseService
+@using System.Security.Claims
+@inject IDialogService DialogService
 
-<PageTitle>couchspaces</PageTitle>
+<CascadingAuthenticationState>
+    <MudThemeProvider @ref="_mudThemeProvider" @bind-IsDarkMode="_isDarkMode" Theme="@CouchspacesTheme" DefaultScrollbar="true" />
+    <MudPopoverProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
 
-@Body
+    <MudLayout>
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+        <MudAppBar Bottom="true" Fixed="true">
+            <AuthorizeView>
+                <Authorized>
+                    <MudGrid Justify="Justify.FlexEnd" AlignItems="AlignItems.Center">
+                        <MudItem Class="align-center">
+                            <MudText Typo="Typo.body1"> @context.User.FindFirst(ClaimTypes.Email)?.Value </MudText>
+                            </MudItem>
+                            <MudItem Class="align-center">
+                                <MudButton Variant="Variant.Filled" Color="Color.Transparent" OnClick="SignOut" Class="ml-2">Logout</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </Authorized>
+                </AuthorizeView>
+            </MudAppBar>
+        </MudLayout>
+</CascadingAuthenticationState>
+
+    @code {
+    private bool _isDarkMode;
+    private MudThemeProvider? _mudThemeProvider;
+    private bool _loginDialogShown = false;
+    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; }
+
+    private MudTheme CouchspacesTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = "#4997f3",
+            Secondary = "#fb912a",
+            Background = "#45234e",
+            AppbarBackground = "#9e87de",
+            DrawerBackground = "#9e87de",
+            DrawerText = Colors.Shades.White,
+            DrawerIcon = Colors.Shades.White
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = "#4997f3",
+            Secondary = "#fb912a",
+            Background = "#45234e",
+            AppbarBackground = "#9e87de",
+            DrawerBackground = "#9e87de",
+            DrawerText = Colors.Shades.White,
+            DrawerIcon = Colors.Shades.White
+        }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isDarkMode = await _mudThemeProvider?.GetSystemPreference();
+            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+            await CheckAuthenticationState();
+            StateHasChanged();
+        }
+    }
+
+    private async Task CheckAuthenticationState()
+    {
+        var authState = await AuthStateTask;
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated && !IsExcludedFromAuth())
+        {
+            Console.WriteLine("User is not authenticated, redirecting to home.");
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private bool IsExcludedFromAuth()
+    {
+        bool excludedFromAuth = Navigation.Uri.EndsWith("/explore", StringComparison.OrdinalIgnoreCase);
+        if (excludedFromAuth) { Console.WriteLine("User is excluded from authentication on this page."); } //verbose only
+
+        return excludedFromAuth;
+    }
+
+    private Task OnSystemPreferenceChanged(bool newValue)
+    {
+        _isDarkMode = newValue;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task SignOut()
+    {
+        await FirebaseService.SignOutAsync();
+    }
+}

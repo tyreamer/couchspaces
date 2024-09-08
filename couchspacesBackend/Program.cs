@@ -1,3 +1,4 @@
+using couchspacesBackend.Hubs;
 using couchspacesBackend.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -16,6 +17,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<FirebaseService>();
+builder.Services.AddSignalR();
 
 // Configure the URLs and ports based on the environment
 if (builder.Environment.IsDevelopment())
@@ -58,5 +60,7 @@ app.UseAuthorization();
 app.UseCors("AllowAll");
 
 app.MapControllers();
+
+app.MapHub<CouchspacesHub>("/couchspaceshub");
 
 app.Run();
