@@ -16,4 +16,8 @@
     <Folder Include="Hubs\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\couchspacesShared\couchspacesShared.csproj" />
+  </ItemGroup>
+
 </Project>

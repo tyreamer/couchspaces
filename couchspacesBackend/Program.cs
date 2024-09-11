@@ -1,5 +1,6 @@
 using couchspacesBackend.Hubs;
 using couchspacesBackend.Services;
+using couchspacesShared.Services;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 
@@ -22,13 +23,21 @@ builder.Services.AddSignalR();
 // Configure the URLs and ports based on the environment
 if (builder.Environment.IsDevelopment())
 {
-    builder.WebHost.UseUrls("http://localhost:5050", "https://localhost:5051");
+    var devHttpURI = "http://localhost:5050";
+    var devHttpsURI = "http://localhost:5051";
+
+    builder.WebHost.UseUrls(devHttpURI, devHttpsURI);
+
+    // Register HttpClient with the development base address
+    builder.Services.AddHttpClient<SpaceService>(client =>
+    {
+        client.BaseAddress = new Uri(devHttpURI); // Development URL http
+    });
 }
 else
 {
-    builder.WebHost.UseUrls("http://*:80", "https://*:443");
+    //TODO: update
 }
-
 
 // Add CORS policy
 builder.Services.AddCors(options =>

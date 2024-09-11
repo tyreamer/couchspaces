@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <Compile Remove="Middleware\**" />
+    <Compile Remove="wwwroot\NewFolder\**" />
     <Content Remove="Middleware\**" />
+    <Content Remove="wwwroot\NewFolder\**" />
     <EmbeddedResource Remove="Middleware\**" />
+    <EmbeddedResource Remove="wwwroot\NewFolder\**" />
     <None Remove="Middleware\**" />
+    <None Remove="wwwroot\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\NewFolder\" />
+    <ProjectReference Include="..\couchspacesShared\couchspacesShared.csproj" />
   </ItemGroup>
 
 </Project>

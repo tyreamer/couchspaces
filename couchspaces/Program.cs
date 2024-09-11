@@ -5,19 +5,25 @@ using Microsoft.AspNetCore.Components.Authorization;
 using couchspaces;
 using MudBlazor.Services;
 using MudBlazor;
-using Google.Api;
+using couchspacesShared.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 
-// Register services
-builder.Services.AddScoped<SpaceService>();
+// Register scoped services
 builder.Services.AddScoped<FirebaseService>();
-builder.Services.AddSingleton<SignalRService>();
+builder.Services.AddScoped<SpaceService>();
 builder.Services.AddScoped<TokenManagerService>();
 builder.Services.AddScoped<TokenValidationService>();
-builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<AuthenticationStateProvider, CouchspacesAuthenticationStateProvider>();
+
+// Register singleton services
+builder.Services.AddSingleton<SignalRService>();
+
+// Add local storage
+builder.Services.AddBlazoredLocalStorage();
+
+// Add mud services
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -31,5 +37,7 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
 builder.Services.AddAuthorizationCore();
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
 
 await builder.Build().RunAsync();
