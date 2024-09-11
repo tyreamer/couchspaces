@@ -2,48 +2,111 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using couchspaces.Services
 @using System.Security.Claims
-@inject NavigationManager NavigationManager
+@using couchspacesShared.Models
+@using couchspacesShared.Services
 @inject SpaceService SpaceService
+@inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
 
 <AuthorizeView>
     <Authorized>
         <MudContainer MaxWidth="MaxWidth.Medium">
-            <MudPaper Class="pa-4">
-                <MudText Typo="Typo.h4">Create a new space</MudText>
-                <MudTextField @bind-Value="spaceName" Label="Space Name" Required="true" />
-                <MudButton OnClick="CreateSpaceHandler" Variant="Variant.Filled" Disabled="@string.IsNullOrEmpty(spaceName)">
-                    Create
-                </MudButton>
-            </MudPaper>
-        </MudContainer>
-    </Authorized>
-    <NotAuthorized>
-        <MudText Typo="Typo.h6">You are not authorized to create a space. Redirecting...</MudText>
-        <MudAlert>Unauthorized</MudAlert>
-    </NotAuthorized>
-</AuthorizeView>
+            <MudItem>
+                <MudPaper Class="pa-4">
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="NavigateToHome" Class="mb-4" aria-label="close" />
+                    <MudText Align="Align.Center" Typo="Typo.h4">Create a new space</MudText>
+                    <MudText Align="Align.Center" Typo="Typo.subtitle1" Color="Color.Dark">Your space is where you and your friends will hangout.</MudText>
+                    <MudTextField @bind-Value="spaceName" Label="Name your space" Required="true" Immediate="true" />
+                    <MudTextField @bind-Value="contentTitle" Label="What are you watching?" Required="true" Immediate="true" />
+                    <MudTextField @bind-Value="streamingPlatform" Label="Streaming Platform" Required="true" Immediate="true" />
+                    <MudTextField @bind-Value="streamingLink" Label="Streaming Link (optional)" Required="false" Immediate="true" />
+                    <br />
+                    <MudSelect @bind-Value="spaceType" Label="Select the Content Type" T="ContentType">
+                        <MudSelectItem Value="@(default(ContentType?))" Disabled>Select the Content Type</MudSelectItem>
+                        @foreach (var contentType in ContentType.ListAll())
+                        {
+                            <MudSelectItem Value="@contentType">@contentType.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <br />
+                    <MudButton FullWidth OnClick="CreateSpaceHandler" Variant="Variant.Filled" StartIcon="rocket_launch" Color="Color.Secondary" Disabled="@missingRequiredFields">
+                         Create the space!
+                     </MudButton>
+                 </MudPaper>
+             </MudItem>
+             <br />
+             <br />
+             <br />
+             <MudItem>
+                 <MudPaper Class="pa-4">
+                     <MudText Align="Align.Center" Typo="Typo.h4">Already have an invite?</MudText>
+                     <MudGrid>
+                         <MudItem xs="2">
+                             <MudIconButton Icon="@Icons.Material.Filled.ContentPaste" OnClick="PasteInviteCode" aria-label="paste" />
+                         </MudItem>
+                         <MudItem xs="10">
+                             <MudTextField @bind-Value="inviteCode" Label="Enter the code here" Required="true" Immediate="true" />
+                         </MudItem>
+                     </MudGrid>
+                     <MudButton FullWidth OnClick="@(() => JoinSpaceHandler(inviteCode))" Variant="Variant.Filled" StartIcon="rocket_launch" Color="Color.Secondary" Disabled="@string.IsNullOrEmpty(inviteCode)">
+                         Join the space!
+                     </MudButton>
+                     @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <MudAlert Severity="Severity.Error" Class="mt-2">
+                            @errorMessage
+                        </MudAlert>
+                    }
+                </MudPaper>
+             </MudItem>
+         </MudContainer>
+     </Authorized>
+     <NotAuthorized>
+         <MudText Typo="Typo.h6">You are not authorized to create a space. Redirecting...</MudText>
+         <MudAlert>Unauthorized</MudAlert>
+     </NotAuthorized>
+ </AuthorizeView>
 
-@code {
-    [CascadingParameter] private Task<AuthenticationState> AuthStateTask { get; set; }
+ @code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
     private string spaceName = string.Empty;
+    private string contentTitle = string.Empty;
+    private string streamingPlatform = string.Empty;
+    private ContentType? spaceType = null;
+    private string streamingLink = string.Empty;
+    private string inviteCode = string.Empty;
+    private string errorMessage = string.Empty;
 
-    private void CreateSpaceHandler()
+    private bool missingRequiredFields => string.IsNullOrEmpty(spaceName) || string.IsNullOrEmpty(contentTitle) || string.IsNullOrEmpty(streamingPlatform);
+
+    private async Task CreateSpaceHandler()
     {
-        var space = SpaceService.CreateSpace(spaceName);
+        var space = await SpaceService.CreateSpace(spaceName, contentTitle, streamingPlatform, spaceType, streamingLink);
         // Navigate to the space page
         NavigationManager.NavigateTo($"/space/{space.Id}");
     }
 
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     var authState = await AuthStateTask;
-    //     var user = authState.User;
+    private async Task JoinSpaceHandler(string inviteCode)
+    {
+        if (await SpaceService.SpaceExists(inviteCode))
+        {
+            // Navigate to the space page
+            NavigationManager.NavigateTo($"/space/{inviteCode}");
+        }
+        else
+        {
+            errorMessage = "We weren't able to find that one. Let's try again!";
+        }
+    }
 
-    //     if (!user.Identity.IsAuthenticated)
-    //     {
-    //         Console.WriteLine("User still not authorized, redirecting to home.");
-    //         NavigationManager.NavigateTo("/");
-    //     }
-    // }
+    private void NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async Task PasteInviteCode()
+    {
+        inviteCode = await JSRuntime.InvokeAsync<string>("pasteFromClipboard");
+    }
 }

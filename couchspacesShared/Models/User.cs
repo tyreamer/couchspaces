@@ -1,4 +1,4 @@
-﻿namespace couchspaces.Models
+﻿namespace couchspacesShared.Models
 {
     public class User
     {

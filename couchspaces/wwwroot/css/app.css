@@ -1,3 +1,52 @@
+/* app.css */
+
+.loading-progress {
+    display: block;
+    margin: 100px auto;
+    width: 80px;
+    height: 80px;
+    animation: rotate 2s linear infinite;
+}
+
+.loading-progress circle {
+    fill: none;
+    stroke: rebeccapurple;
+    stroke-width: 8;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
+}
+
+.loading-progress-text {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.2em;
+    color: #0078d4;
+    margin-top: 20px;
+}
+
 .poppins-thin {
     font-family: "Poppins", sans-serif;
     font-weight: 100;

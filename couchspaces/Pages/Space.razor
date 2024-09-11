@@ -1,12 +1,31 @@
 ﻿@page "/space/{spaceId}"
-@using Microsoft.AspNetCore.SignalR.Client
+@using couchspaces.Components
+@using couchspaces.Models
+@using couchspacesShared.Models
+@using couchspacesShared.Services
 @inject NavigationManager Navigation
 @inject SpaceService SpaceService
+@inject SignalRService SignalRService
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudPaper Class="pa-4">
-        <MudText Typo="Typo.h4">Couchspace</MudText>
+        <MudText Typo="Typo.h6">Space Name: @spaceName</MudText>
         <MudText Typo="Typo.h6">Space ID: @spaceId</MudText>
+        <MudText Typo="Typo.h6">Watching: @contentTitle</MudText>
+        <MudText Typo="Typo.body1">Connection Status: @connectionStatus</MudText>
+        @if (spaceType != null)
+        {
+            <MudText Typo="Typo.h6">Content Type: @spaceType.Name</MudText>
+        }            
+         @if (!string.IsNullOrWhiteSpace(streamingPlatform))
+        {
+            <MudText Typo="Typo.h6">Platform: @streamingPlatform</MudText>
+        }
+        @if (!string.IsNullOrWhiteSpace(streamingLink))
+        {
+            <MudText Typo="Typo.h6">Streaming Link: @streamingLink</MudText>
+        }
+
         <UserListComponent SpaceId="spaceId" />
         <ChatComponent SpaceId="spaceId" />
         <ReactionsComponent SpaceId="spaceId" />
@@ -19,10 +38,48 @@
 
 @code {
     [Parameter]
-    public string spaceId { get; set; }
+    public required string spaceId { get; set; }
+
+    private string spaceName = string.Empty;
+    private string contentTitle = string.Empty;
+    private string streamingLink = string.Empty;
+    private string streamingPlatform = string.Empty;
+    private ContentType spaceType = ContentType.Other;
+    private string connectionStatus = "Disconnected";
 
     protected override async Task OnInitializedAsync()
     {
-        // Initialize any necessary data or services here
+        // Retrieve the space name using the spaceId
+        couchspacesShared.Models.Space space = SpaceService.GetSpace(spaceId)?.Result;
+
+        if (space != null)
+        {
+            spaceName = space.Name ?? string.Empty;
+            streamingLink = space.StreamingLink ?? string.Empty;
+            streamingPlatform = space.StreamingPlatform ?? string.Empty;
+            spaceType = space.ContentType;
+            contentTitle = space.ContentTitle;
+
+            SignalRService.HubConnection.Closed += async (error) =>
+            {
+                connectionStatus = "Disconnected";
+                StateHasChanged();
+                await Task.Delay(new Random().Next(0, 5) * 1000);
+                await SignalRService.StartConnectionAsync();
+            };
+
+            try
+            {
+                await SignalRService.StartConnectionAsync();
+                connectionStatus = "Connected";
+            }
+            catch (Exception ex)
+            {
+                connectionStatus = $"Error: {ex.Message}";
+            }
+
+            StateHasChanged();
+            
+        }
     }
 }

@@ -1,7 +1,8 @@
 ﻿@page "/join-space"
-@inject couchspaces.Services.SpaceService SpaceService
-@inject NavigationManager NavigationManager
 @using couchspaces.Models
+@using couchspacesShared.Models
+@inject couchspacesShared.Services.SpaceService SpaceService
+@inject NavigationManager NavigationManager
 
 <h3>Join Space</h3>
 <input @bind="spaceId" placeholder="Space ID" />
@@ -32,11 +33,11 @@
         NavigationManager.NavigateTo($"/space/{spaceId}");
     }
 
-    protected override void OnParametersSet()
+    protected override async void OnParametersSet()
     {
         if (!string.IsNullOrEmpty(spaceId))
         {
-            users = SpaceService.GetUsersInSpace(spaceId);
+            users = await SpaceService.GetUsersInSpace(spaceId);
         }
     }
 }
