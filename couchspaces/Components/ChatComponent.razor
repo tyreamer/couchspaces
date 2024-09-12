@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.SignalR.Client
+@using couchspacesShared.Services
 @inject SignalRService SignalRService
+@inject UserService UserService
 
 <MudTextField @bind-Value="message" Label="Message" />
 <MudButton OnClick="SendMessage" Variant="Variant.Filled">Send</MudButton>
@@ -16,9 +18,12 @@
 
     private string message;
     private List<string> messages = new List<string>();
+    private string userFirstName;
 
     protected override async Task OnInitializedAsync()
     {
+        userFirstName = await UserService.GetUsernameAsync();
+
         SignalRService.HubConnection.On<string, string>("ReceiveMessage", (user, message) =>
         {
             var encodedMsg = $"{user}: {message}";
@@ -33,7 +38,7 @@
     {
         if (!string.IsNullOrEmpty(message))
         {
-            await SignalRService.HubConnection.SendAsync("SendMessage", "User", message);
+            await SignalRService.HubConnection.SendAsync("SendMessage", userFirstName, message);
             message = string.Empty;
         }
     }

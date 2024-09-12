@@ -11,7 +11,7 @@ namespace couchspaces.Services
         {
             _navigationManager = navigationManager;
             HubConnection = new HubConnectionBuilder()
-                .WithUrl(_navigationManager.ToAbsoluteUri("http://localhost:5050/couchspaceshub"))
+                .WithUrl(_navigationManager.ToAbsoluteUri("http://localhost:5015/couchspaceshub"))
                 .Build();
         }
 

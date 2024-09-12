@@ -6,33 +6,73 @@
 @inject NavigationManager Navigation
 @inject SpaceService SpaceService
 @inject SignalRService SignalRService
+@inject IJSRuntime JsRuntime
 
 <MudContainer MaxWidth="MaxWidth.Medium">
     <MudPaper Class="pa-4">
-        <MudText Typo="Typo.h6">Space Name: @spaceName</MudText>
-        <MudText Typo="Typo.h6">Space ID: @spaceId</MudText>
-        <MudText Typo="Typo.h6">Watching: @contentTitle</MudText>
-        <MudText Typo="Typo.body1">Connection Status: @connectionStatus</MudText>
-        @if (spaceType != null)
-        {
-            <MudText Typo="Typo.h6">Content Type: @spaceType.Name</MudText>
-        }            
-         @if (!string.IsNullOrWhiteSpace(streamingPlatform))
-        {
-            <MudText Typo="Typo.h6">Platform: @streamingPlatform</MudText>
-        }
-        @if (!string.IsNullOrWhiteSpace(streamingLink))
-        {
-            <MudText Typo="Typo.h6">Streaming Link: @streamingLink</MudText>
-        }
-
-        <UserListComponent SpaceId="spaceId" />
-        <ChatComponent SpaceId="spaceId" />
-        <ReactionsComponent SpaceId="spaceId" />
-        <MediaComponent SpaceId="spaceId" />
-        <ShowEventComponent SpaceId="spaceId" />
-        <TimestampComponent SpaceId="spaceId" />
-        <PlayPauseComponent SpaceId="spaceId" />
+        <MudGrid>
+            <MudItem xs="12" class="d-flex align-items-center mb-2">
+                <MudTooltip Text="@connectionStatus">
+                    <MudIcon Icon="@GetConnectionStatusIcon()" Color="@GetConnectionStatusColor()" aria-label="Connection Status" />
+                </MudTooltip>
+                <MudText Typo="Typo.body1" Class="ml-2">Connection Status</MudText>
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <MudText Typo="Typo.h6">Space Name: @spaceName</MudText>
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <MudText Typo="Typo.h6">
+                    Space ID: @spaceId
+                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="CopySpaceId" />
+                </MudText>
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <MudText Typo="Typo.h6">Watching: @contentTitle</MudText>
+            </MudItem>
+            @if (spaceType != null)
+            {
+                <MudItem xs="12" class="mb-2">
+                    <MudText Typo="Typo.h6">Content Type: @spaceType.Name</MudText>
+                </MudItem>
+            }
+            @if (!string.IsNullOrWhiteSpace(streamingPlatform))
+            {
+                <MudItem xs="12" class="mb-2">
+                    <MudText Typo="Typo.h6">Platform: @streamingPlatform</MudText>
+                </MudItem>
+            }
+            @if (!string.IsNullOrWhiteSpace(streamingLink))
+            {
+                <MudItem xs="12" class="mb-2">
+                    <MudText Typo="Typo.h6">Streaming Link: @streamingLink</MudText>
+                </MudItem>
+            }
+            <MudItem xs="12" class="mb-2">
+                <UserListComponent SpaceId="spaceId" />
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <ChatComponent SpaceId="spaceId" />
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <ReactionsComponent SpaceId="spaceId" />
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <MediaComponent SpaceId="spaceId" />
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <ShowEventComponent SpaceId="spaceId" />
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <TimestampComponent SpaceId="spaceId" />
+            </MudItem>
+            <MudItem xs="12" class="mb-2">
+                <PlayPauseComponent SpaceId="spaceId" />
+            </MudItem>
+            <MudItem xs="12" class="send-react-container d-flex justify-content-between align-items-center mt-4">
+                <SendComponent SpaceId="spaceId" />
+                <ReactComponent SpaceId="spaceId" />
+            </MudItem>
+        </MudGrid>
     </MudPaper>
 </MudContainer>
 
@@ -49,37 +89,68 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Retrieve the space name using the spaceId
-        couchspacesShared.Models.Space space = SpaceService.GetSpace(spaceId)?.Result;
-
-        if (space != null)
+        try
         {
-            spaceName = space.Name ?? string.Empty;
-            streamingLink = space.StreamingLink ?? string.Empty;
-            streamingPlatform = space.StreamingPlatform ?? string.Empty;
-            spaceType = space.ContentType;
-            contentTitle = space.ContentTitle;
+            // Retrieve the space name using the spaceId
+            var space = await SpaceService.GetSpace(spaceId);
 
-            SignalRService.HubConnection.Closed += async (error) =>
+            if (space != null)
             {
-                connectionStatus = "Disconnected";
+                spaceName = space.Name ?? string.Empty;
+                streamingLink = space.StreamingLink ?? string.Empty;
+                streamingPlatform = space.StreamingPlatform ?? string.Empty;
+                spaceType = space.ContentType;
+                contentTitle = space.ContentTitle;
+
+                SignalRService.HubConnection.Closed += async (error) =>
+                {
+                    connectionStatus = "Disconnected";
+                    StateHasChanged();
+                    await Task.Delay(new Random().Next(0, 5) * 1000);
+                    await SignalRService.StartConnectionAsync();
+                };
+
+                try
+                {
+                    await SignalRService.StartConnectionAsync();
+                    connectionStatus = "Connected";
+                }
+                catch (Exception ex)
+                {
+                    connectionStatus = $"Error: {ex.Message}";
+                }
+
                 StateHasChanged();
-                await Task.Delay(new Random().Next(0, 5) * 1000);
-                await SignalRService.StartConnectionAsync();
-            };
-
-            try
-            {
-                await SignalRService.StartConnectionAsync();
-                connectionStatus = "Connected";
             }
-            catch (Exception ex)
-            {
-                connectionStatus = $"Error: {ex.Message}";
-            }
-
-            StateHasChanged();
-            
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching space: {ex.Message}");
+        }
+    }
+
+    private async Task CopySpaceId()
+    {
+        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", spaceId);
+    }
+
+    private string GetConnectionStatusIcon()
+    {
+        return connectionStatus switch
+        {
+            "Connected" => Icons.Material.Filled.CheckCircle,
+            "Disconnected" => Icons.Material.Filled.Cancel,
+            _ => Icons.Material.Filled.Warning
+        };
+    }
+
+    private Color GetConnectionStatusColor()
+    {
+        return connectionStatus switch
+        {
+            "Connected" => Color.Success,
+            "Disconnected" => Color.Error,
+            _ => Color.Warning
+        };
     }
 }

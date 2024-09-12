@@ -6,6 +6,18 @@ using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// MUST BE FIRST - Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
+
 // Initialize Firebase Admin SDK
 FirebaseApp.Create(new AppOptions()
 {
@@ -23,8 +35,8 @@ builder.Services.AddSignalR();
 // Configure the URLs and ports based on the environment
 if (builder.Environment.IsDevelopment())
 {
-    var devHttpURI = "http://localhost:5050";
-    var devHttpsURI = "http://localhost:5051";
+    var devHttpURI = "http://localhost:5015";
+    var devHttpsURI = "https://localhost:7160";
 
     builder.WebHost.UseUrls(devHttpURI, devHttpsURI);
 
@@ -38,18 +50,6 @@ else
 {
     //TODO: update
 }
-
-// Add CORS policy
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-});
 
 var app = builder.Build();
 
