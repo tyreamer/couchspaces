@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace couchspacesShared.Models
 {
@@ -19,7 +20,8 @@ namespace couchspacesShared.Models
     {
         public string Name { get; private set; }
 
-        private ContentType(string name)
+        [JsonConstructor]
+        public ContentType(string name)
         {
             Name = name;
         }

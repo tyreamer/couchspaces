@@ -4,9 +4,11 @@
 @using couchspaces.Models
 @using couchspaces.Services
 @using Microsoft.AspNetCore.Components
+@using couchspacesShared.Services
 @inject IJSRuntime JsRuntime
 @inject FirebaseService FirebaseService
 @inject NavigationManager Navigation
+@inject UserService UserService
 
 <MudGrid JustifyContent="Center" AlignItems="Center" Style="height: 100vh;">
     <MudItem JustifyContent="Center" AlignItems="Center">
@@ -57,19 +59,8 @@
 
     private async Task CheckAuthenticationState()
     {
-        var authState = await AuthStateTask;
-        var user = authState.User;
-
-        if (user.Identity.IsAuthenticated)
-        {
-            var userName = user.FindFirst(ClaimTypes.Name)?.Value;
-            Console.WriteLine($"User is authenticated: {userName}");
-        }
-        else
-        {
-            // User is not authenticated
-            Console.WriteLine("User is not authenticated");
-        }
+        var userName = await UserService.GetUsernameAsync();
+        Console.WriteLine($"User is authenticated: {userName}");
     }
 
     protected override async Task OnInitializedAsync()

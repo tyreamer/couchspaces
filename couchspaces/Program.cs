@@ -13,6 +13,7 @@ builder.RootComponents.Add<App>("#app");
 // Register scoped services
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<SpaceService>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TokenManagerService>();
 builder.Services.AddScoped<TokenValidationService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CouchspacesAuthenticationStateProvider>();
@@ -37,7 +38,8 @@ builder.Services.AddMudServices(config =>
     config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
 });
 builder.Services.AddAuthorizationCore();
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
+// Configure HttpClient to use the backend's base address
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5015") });
 
 await builder.Build().RunAsync();
