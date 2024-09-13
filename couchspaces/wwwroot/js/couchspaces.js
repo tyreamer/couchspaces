@@ -7,3 +7,8 @@
         return '';
     }
 }
+
+function playSound() {
+    var audio = new Audio('/sounds/start.mp3');
+    audio.play();
+}

@@ -8,73 +8,89 @@
 @inject SignalRService SignalRService
 @inject IJSRuntime JsRuntime
 
-<MudContainer MaxWidth="MaxWidth.Medium">
-    <MudPaper Class="pa-4">
-        <MudGrid>
-            <MudItem xs="12" class="d-flex align-items-center mb-2">
-                <MudTooltip Text="@connectionStatus">
-                    <MudIcon Icon="@GetConnectionStatusIcon()" Color="@GetConnectionStatusColor()" aria-label="Connection Status" />
-                </MudTooltip>
-                <MudText Typo="Typo.body1" Class="ml-2">Connection Status</MudText>
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <MudText Typo="Typo.h6">Space Name: @spaceName</MudText>
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <MudText Typo="Typo.h6">
-                    Space ID: @spaceId
-                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="CopySpaceId" />
-                </MudText>
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <MudText Typo="Typo.h6">Watching: @contentTitle</MudText>
-            </MudItem>
-            @if (spaceType != null)
-            {
-                <MudItem xs="12" class="mb-2">
-                    <MudText Typo="Typo.h6">Content Type: @spaceType.Name</MudText>
-                </MudItem>
-            }
-            @if (!string.IsNullOrWhiteSpace(streamingPlatform))
-            {
-                <MudItem xs="12" class="mb-2">
-                    <MudText Typo="Typo.h6">Platform: @streamingPlatform</MudText>
-                </MudItem>
-            }
-            @if (!string.IsNullOrWhiteSpace(streamingLink))
-            {
-                <MudItem xs="12" class="mb-2">
-                    <MudText Typo="Typo.h6">Streaming Link: @streamingLink</MudText>
-                </MudItem>
-            }
-            <MudItem xs="12" class="mb-2">
-                <UserListComponent SpaceId="spaceId" />
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <ChatComponent SpaceId="spaceId" />
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <ReactionsComponent SpaceId="spaceId" />
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <MediaComponent SpaceId="spaceId" />
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <ShowEventComponent SpaceId="spaceId" />
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <TimestampComponent SpaceId="spaceId" />
-            </MudItem>
-            <MudItem xs="12" class="mb-2">
-                <PlayPauseComponent SpaceId="spaceId" />
-            </MudItem>
-            <MudItem xs="12" class="send-react-container d-flex justify-content-between align-items-center mt-4">
-                <SendComponent SpaceId="spaceId" />
-                <ReactComponent SpaceId="spaceId" />
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-</MudContainer>
+<AuthorizeView>
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="mx-auto mt-12">
+            <MudPaper Elevation="2" Class="pa-8" Square>
+                <MudGrid>
+                    <MudItem xs="2" class="d-flex align-items-right mb-2">
+                        <MudTooltip Text="@connectionStatus">
+                            <MudIcon Icon="@GetConnectionStatusIcon()" Color="@GetConnectionStatusColor()" aria-label="Connection Status" />
+                        </MudTooltip>
+                    </MudItem>
+                    <MudItem xs="10" class="d-flex align-items-left mb-2">
+                        <MudText Typo="Typo.h6">Watching: @contentTitle</MudText>
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2" Style="background-color: #f0f0f0; padding: 2px; border-radius: 6px;">
+                        <MudText Typo="Typo.subtitle2">
+                            <MudIconButton Icon="@Icons.Material.Filled.GroupAdd" Color="Color.Dark" />
+                            <b>Invite Friends:</b> @spaceId
+                            <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" OnClick="CopySpaceId" Color="Color.Dark" />
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <MudText Typo="Typo.h6">Start from current time or use SyncStart?</MudText>
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <MudButton OnMouseDown="OnReadyPress" OnMouseUp="OnReadyRelease" OnTouchStart="OnReadyPress" OnTouchEnd="OnReadyRelease" Color="Color.Primary" Variant="Variant.Filled" Class="ready-button">
+                            Hold to indicate you are ready
+                        </MudButton>
+                    </MudItem>
+                    @if (spaceType != null)
+                    {
+                        <MudItem xs="12" class="mb-2">
+                            <MudText Typo="Typo.h6">Content Type: @spaceType.Name</MudText>
+                        </MudItem>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(streamingPlatform))
+                    {
+                        <MudItem xs="12" class="mb-2">
+                            <MudText Typo="Typo.h6">Platform: @streamingPlatform</MudText>
+                        </MudItem>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(streamingLink))
+                    {
+                        <MudItem xs="12" class="mb-2">
+                            <MudText Typo="Typo.h6">Streaming Link: @streamingLink</MudText>
+                        </MudItem>
+                    }
+                    <MudItem xs="12" class="mb-2">
+                        <UserListComponent SpaceId="spaceId" />
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <ChatComponent SpaceId="spaceId" />
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <ReactionsComponent SpaceId="spaceId" />
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <MediaComponent SpaceId="spaceId" />
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <ShowEventComponent SpaceId="spaceId" />
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <TimestampComponent SpaceId="spaceId" />
+                    </MudItem>
+                    <MudItem xs="12" class="mb-2">
+                        <PlayPauseComponent SpaceId="spaceId" />
+                    </MudItem>
+                    <MudItem xs="12" class="send-react-container d-flex justify-content-between align-items-center mt-4">
+                        <SendComponent SpaceId="spaceId" />
+                        <ReactComponent SpaceId="spaceId" />
+                    </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudContainer>
+        </Authorized>
+        <NotAuthorized>
+            <MudText Typo="Typo.h6">You are not authorized to view this space. Redirecting...</MudText>
+            <MudAlert>Unauthorized</MudAlert>
+        </NotAuthorized>
+    </AuthorizeView>
 
 @code {
     [Parameter]
@@ -86,6 +102,10 @@
     private string streamingPlatform = string.Empty;
     private ContentType spaceType = ContentType.Other;
     private string connectionStatus = "Disconnected";
+    private bool isReady = false;
+    private int readyUserCount = 0;
+    private int totalUserCount = 0;
+    private bool countdownStarted = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -102,31 +122,69 @@
                 spaceType = space.ContentType;
                 contentTitle = space.ContentTitle;
 
-                SignalRService.HubConnection.Closed += async (error) =>
-                {
-                    connectionStatus = "Disconnected";
-                    StateHasChanged();
-                    await Task.Delay(new Random().Next(0, 5) * 1000);
-                    await SignalRService.StartConnectionAsync();
-                };
+                SignalRService.OnReadyUserCountUpdated += UpdateReadyUserCount;
+                SignalRService.OnTotalUserCountUpdated += UpdateTotalUserCount;
+                SignalRService.OnConnectionStatusChanged += UpdateConnectionStatus;
 
-                try
-                {
-                    await SignalRService.StartConnectionAsync();
-                    connectionStatus = "Connected";
-                }
-                catch (Exception ex)
-                {
-                    connectionStatus = $"Error: {ex.Message}";
-                }
-
-                StateHasChanged();
+                await SignalRService.StartConnectionAsync();
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching space: {ex.Message}");
         }
+    }
+
+    private void UpdateReadyUserCount(int count)
+    {
+        readyUserCount = count;
+        StateHasChanged();
+    }
+
+    private void UpdateTotalUserCount(int count)
+    {
+        totalUserCount = count;
+        StateHasChanged();
+    }
+
+    private void UpdateConnectionStatus(string status)
+    {
+        connectionStatus = status;
+        StateHasChanged();
+    }
+
+    private async Task OnReadyPress()
+    {
+        isReady = true;
+        await SignalRService.SetUserReady(spaceId, "userId", true); // Replace "userId" with actual user ID
+        CheckAllUsersReady();
+    }
+
+    private async Task OnReadyRelease()
+    {
+        isReady = false;
+        await SignalRService.SetUserReady(spaceId, "userId", false); // Replace "userId" with actual user ID
+    }
+
+    private void CheckAllUsersReady()
+    {
+        if (readyUserCount == totalUserCount && totalUserCount > 0 && !countdownStarted)
+        {
+            countdownStarted = true;
+            StartCountdown();
+        }
+    }
+
+    private async void StartCountdown()
+    {
+        for (int i = 3; i > 0; i--)
+        {
+            await Task.Delay(1000);
+            // Update UI with countdown (optional)
+        }
+        // Play sound and show "Press Play" message
+        await JsRuntime.InvokeVoidAsync("playSound");
+        countdownStarted = false;
     }
 
     private async Task CopySpaceId()
@@ -138,8 +196,8 @@
     {
         return connectionStatus switch
         {
-            "Connected" => Icons.Material.Filled.CheckCircle,
-            "Disconnected" => Icons.Material.Filled.Cancel,
+            "Connected" => Icons.Material.Filled.Circle,
+            "Disconnected" => Icons.Material.Filled.Circle,
             _ => Icons.Material.Filled.Warning
         };
     }

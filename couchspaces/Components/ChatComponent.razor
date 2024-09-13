@@ -1,5 +1,4 @@
-﻿@using Microsoft.AspNetCore.SignalR.Client
-@using couchspacesShared.Services
+﻿@using couchspacesShared.Services
 @inject SignalRService SignalRService
 @inject UserService UserService
 
@@ -24,21 +23,19 @@
     {
         userFirstName = await UserService.GetUsernameAsync();
 
-        SignalRService.HubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        SignalRService.OnMessageReceived += (user, message) =>
         {
             var encodedMsg = $"{user}: {message}";
             messages.Add(encodedMsg);
             InvokeAsync(StateHasChanged);
-        });
-
-        await SignalRService.StartConnectionAsync();
+        };
     }
 
     private async Task SendMessage()
     {
         if (!string.IsNullOrEmpty(message))
         {
-            await SignalRService.HubConnection.SendAsync("SendMessage", userFirstName, message);
+            await SignalRService.SendMessage(userFirstName, message);
             message = string.Empty;
         }
     }

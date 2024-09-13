@@ -11,56 +11,43 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudContainer MaxWidth="MaxWidth.Medium">
-            <MudItem>
-                <MudPaper Class="pa-4">
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="NavigateToHome" Class="mb-4" aria-label="close" />
-                    <MudText Align="Align.Center" Typo="Typo.h4">Create a new space</MudText>
-                    <MudText Align="Align.Center" Typo="Typo.subtitle1" Color="Color.Dark">Your space is where you and your friends will hangout.</MudText>
-                    <MudTextField @bind-Value="spaceName" Label="Name your space" Required="true" Immediate="true" />
-                    <MudTextField @bind-Value="contentTitle" Label="What are you watching?" Required="true" Immediate="true" />
-                    <MudTextField @bind-Value="streamingPlatform" Label="Streaming Platform" Required="true" Immediate="true" />
-                    <MudTextField @bind-Value="streamingLink" Label="Streaming Link (optional)" Required="false" Immediate="true" />
-                    <br />
-                    <MudSelect @bind-Value="spaceType" Label="Select the Content Type" T="ContentType">
-                        <MudSelectItem Value="@(default(ContentType?))" Disabled>Select the Content Type</MudSelectItem>
-                        @foreach (var contentType in ContentType.ListAll())
-                        {
-                            <MudSelectItem Value="@contentType">@contentType.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                    <br />
-                    <MudButton FullWidth OnClick="CreateSpaceHandler" Variant="Variant.Filled" StartIcon="rocket_launch" Color="Color.Secondary" Disabled="@missingRequiredFields">
-                         Create the space!
-                     </MudButton>
-                 </MudPaper>
-             </MudItem>
-             <br />
-             <br />
-             <br />
-             <MudItem>
-                 <MudPaper Class="pa-4">
-                     <MudText Align="Align.Center" Typo="Typo.h4">Already have an invite?</MudText>
-                     <MudGrid>
-                         <MudItem xs="2">
-                             <MudIconButton Icon="@Icons.Material.Filled.ContentPaste" OnClick="PasteInviteCode" aria-label="paste" />
-                         </MudItem>
-                         <MudItem xs="10">
-                             <MudTextField @bind-Value="inviteCode" Label="Enter the code here" Required="true" Immediate="true" />
-                         </MudItem>
-                     </MudGrid>
-                     <MudButton FullWidth OnClick="@(() => JoinSpaceHandler(inviteCode))" Variant="Variant.Filled" StartIcon="rocket_launch" Color="Color.Secondary" Disabled="@string.IsNullOrEmpty(inviteCode)">
-                         Join the space!
-                     </MudButton>
-                     @if (!string.IsNullOrEmpty(errorMessage))
+        <MudContainer MaxWidth="MaxWidth.Small" Class="mx-auto mt-12">
+            <MudPaper Elevation="2" Class="pa-8" Square>
+                <MudGrid>
+                    <MudItem xs="2"></MudItem>
+                    <MudItem xs="8">
+                        <MudTextField @bind-Value="inviteCode" Label="Already have an invite code?" Required="true" Immediate="true" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Login" OnAdornmentClick="@(() => JoinSpaceHandler(inviteCode))" AdornmentAriaLabel="Join space" />
+                    </MudItem>
+                    <MudItem xs="2"></MudItem>
+                </MudGrid>
+                 @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mt-2">
+                        @errorMessage
+                    </MudAlert>
+                }
+                <br />
+                <MudText Align="Align.Center" Typo="Typo.subtitle1">- or -</MudText>
+                <MudText Align="Align.Center" Typo="Typo.h4" Color="Color.Dark">Create a new space</MudText>
+                <MudText Align="Align.Center" Typo="Typo.subtitle1" Color="Color.Dark">Your space is where you and your friends will hangout.</MudText>
+                <br/>
+                <MudTextField @bind-Value="contentTitle" Label="What are you watching?" Required="true" Immediate="true" />
+                <MudTextField @bind-Value="streamingPlatform" Label="Streaming Platform" Required="true" Immediate="true" />
+                <MudTextField @bind-Value="streamingLink" Label="Streaming Link (optional)" Required="false" Immediate="true" />
+                <br />
+                <MudSelect @bind-Value="spaceType" Label="Select the Content Type" T="ContentType">
+                    <MudSelectItem Value="@(default(ContentType?))" Disabled>Select the Content Type</MudSelectItem>
+                    @foreach (var contentType in ContentType.ListAll())
                     {
-                        <MudAlert Severity="Severity.Error" Class="mt-2">
-                            @errorMessage
-                        </MudAlert>
+                        <MudSelectItem Value="@contentType">@contentType.Name</MudSelectItem>
                     }
-                </MudPaper>
-             </MudItem>
-         </MudContainer>
+                </MudSelect>
+                <br />
+                <MudButton FullWidth OnClick="CreateSpaceHandler" Variant="Variant.Filled" StartIcon="rocket_launch" Color="Color.Secondary" Disabled="@missingRequiredFields">
+                     Create the space!
+                 </MudButton>
+            </MudPaper>
+        </MudContainer>
      </Authorized>
      <NotAuthorized>
          <MudText Typo="Typo.h6">You are not authorized to create a space. Redirecting...</MudText>
@@ -70,33 +57,41 @@
 
  @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
-    private string spaceName = string.Empty;
+    private string spaceName1 = string.Empty;
     private string contentTitle = string.Empty;
     private string streamingPlatform = string.Empty;
     private ContentType? spaceType = null;
     private string streamingLink = string.Empty;
     private string inviteCode = string.Empty;
+    private string inviteCode1 = string.Empty;
     private string errorMessage = string.Empty;
 
-    private bool missingRequiredFields => string.IsNullOrEmpty(spaceName) || string.IsNullOrEmpty(contentTitle) || string.IsNullOrEmpty(streamingPlatform);
+    private bool missingRequiredFields => string.IsNullOrEmpty(contentTitle) || string.IsNullOrEmpty(streamingPlatform);
 
     private async Task CreateSpaceHandler()
     {
-        var space = await SpaceService.CreateSpace(spaceName, contentTitle, streamingPlatform, spaceType, streamingLink);
+        var space = await SpaceService.CreateSpace(contentTitle, streamingPlatform, spaceType, streamingLink);
         // Navigate to the space page
         NavigationManager.NavigateTo($"/space/{space.Id}");
     }
 
     private async Task JoinSpaceHandler(string inviteCode)
     {
-        if (await SpaceService.SpaceExists(inviteCode))
+        if (!string.IsNullOrEmpty(inviteCode))
         {
-            // Navigate to the space page
-            NavigationManager.NavigateTo($"/space/{inviteCode}");
+            if (await SpaceService.SpaceExists(inviteCode))
+            {
+                // Navigate to the space page
+                NavigationManager.NavigateTo($"/space/{inviteCode}");
+            }
+            else
+            {
+                errorMessage = "We weren't able to find that one. Let's try again!";
+            }            
         }
         else
         {
-            errorMessage = "We weren't able to find that one. Let's try again!";
+            errorMessage = "We need a valid invite code to join an existing space. Let's try again!";
         }
     }
 

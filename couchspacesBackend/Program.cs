@@ -1,12 +1,11 @@
 using couchspacesBackend.Hubs;
 using couchspacesBackend.Services;
 using couchspacesShared.Services;
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MUST BE FIRST - Add CORS policy
+// Add CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -18,19 +17,27 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Initialize Firebase Admin SDK
-FirebaseApp.Create(new AppOptions()
-{
-    Credential = GoogleCredential.FromFile("D:\\Projects\\couchspaces\\couchspacesBackend\\couchspaces-firebase-adminsdk-5tn0i-90922ab37a.json") //TODO: convert to environment variable
-});
-
 // Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<FirebaseService>();
 builder.Services.AddSignalR();
+
+// Register singleton services
+builder.Services.AddSingleton<FirebaseService>();
+builder.Services.AddSingleton(sp => new SignalRService("https://localhost:7160/couchspaceshub"));
+
+builder.Services.AddTransient<SpaceService>();
+
+// Register IHttpClientFactory
+builder.Services.AddHttpClient();
+
+// Redis configuration
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = ConfigurationOptions.Parse("localhost:6379", true);
+    return ConnectionMultiplexer.Connect(configuration);
+});
 
 // Configure the URLs and ports based on the environment
 if (builder.Environment.IsDevelopment())
@@ -39,16 +46,10 @@ if (builder.Environment.IsDevelopment())
     var devHttpsURI = "https://localhost:7160";
 
     builder.WebHost.UseUrls(devHttpURI, devHttpsURI);
-
-    // Register HttpClient with the development base address
-    builder.Services.AddHttpClient<SpaceService>(client =>
-    {
-        client.BaseAddress = new Uri(devHttpURI); // Development URL http
-    });
 }
 else
 {
-    //TODO: update
+    //TODO: update for production
 }
 
 var app = builder.Build();
