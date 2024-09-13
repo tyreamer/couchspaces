@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.SignalR.Client
+﻿@using couchspacesShared.Services
 @inject SignalRService SignalRService
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -25,18 +25,16 @@
             userDisplayName = "Guest";
         }
 
-        SignalRService.HubConnection.On<string, string>("ReceiveReaction", (user, reaction) =>
+        SignalRService.OnReactionReceived += (user, reaction) =>
         {
             var encodedReaction = $"{user}: {reaction}";
             ShowReaction(encodedReaction);
-        });
-
-        await SignalRService.StartConnectionAsync();
+        };
     }
 
     private async Task SendReaction()
     {
-        await SignalRService.HubConnection.SendAsync("SendReaction", userDisplayName, "👍");
+        await SignalRService.SendReaction(userDisplayName, "👍");
     }
 
     private void ShowReaction(string reaction)
@@ -47,4 +45,3 @@
         });
     }
 }
-

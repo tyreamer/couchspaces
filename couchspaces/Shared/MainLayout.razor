@@ -23,7 +23,7 @@
                             <MudText Typo="Typo.body1"> @context.User.FindFirst(ClaimTypes.Email)?.Value </MudText>
                             </MudItem>
                             <MudItem Class="align-center">
-                                <MudButton Variant="Variant.Filled" Color="Color.Transparent" OnClick="SignOut" Class="ml-2">Logout</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Tertiary" OnClick="SignOut" Class="ml-2">Logout</MudButton>
                             </MudItem>
                         </MudGrid>
                     </Authorized>
