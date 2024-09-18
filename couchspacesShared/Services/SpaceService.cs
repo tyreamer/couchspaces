@@ -94,5 +94,18 @@ namespace couchspacesShared.Services
         {
             await _signalRService.CheckAllUsersReady(spaceId);
         }
+
+        public async Task AddMessage(string spaceId, Message message)
+        {
+            var client = CreateClient();
+            var response = await client.PostAsJsonAsync($"api/space/{spaceId}/messages", message);
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<List<Message>> GetMessages(string spaceId)
+        {
+            var client = CreateClient();
+            return await client.GetFromJsonAsync<List<Message>>($"api/space/{spaceId}/messages");
+        }
     }
 }

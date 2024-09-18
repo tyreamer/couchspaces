@@ -1,5 +1,6 @@
 using couchspacesBackend.Hubs;
 using couchspacesBackend.Services;
+using couchspacesShared.Repositories;
 using couchspacesShared.Services;
 using StackExchange.Redis;
 
@@ -26,6 +27,8 @@ builder.Services.AddSignalR();
 // Register singleton services
 builder.Services.AddSingleton<FirebaseService>();
 builder.Services.AddSingleton(sp => new SignalRService("https://localhost:7160/couchspaceshub"));
+builder.Services.AddSingleton<MessageRepository>();
+builder.Services.AddSingleton<MessageService>();
 
 builder.Services.AddTransient<SpaceService>();
 

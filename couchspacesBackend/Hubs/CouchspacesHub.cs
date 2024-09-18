@@ -2,23 +2,28 @@ using Microsoft.AspNetCore.SignalR;
 using couchspacesShared.Models;
 using couchspacesShared.Services;
 using StackExchange.Redis;
+using System.Collections.Concurrent;
+using couchspacesShared.Repositories;
 
 namespace couchspacesBackend.Hubs
 {
     public class CouchspacesHub : Hub
     {
         private readonly SpaceService _spaceService;
-        private readonly IDatabase _redisDatabase;
+        private readonly MessageRepository _messageRepository;
+        private static readonly ConcurrentDictionary<string, List<couchspacesShared.Models.Message>> _messages = new();
 
-        public CouchspacesHub(SpaceService spaceService, IConnectionMultiplexer redis)
+        public CouchspacesHub(SpaceService spaceService, MessageRepository messageRepository)
         {
             _spaceService = spaceService;
-            _redisDatabase = redis.GetDatabase();
+            _messageRepository = messageRepository;
         }
 
-        public async Task SendMessage(string user, string message)
+        public async Task SendMessage(string spaceId, string user, string message)
         {
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
+            var newMessage = new couchspacesShared.Models.Message { User = user, Content = message };
+            await _messageRepository.AddMessageAsync(spaceId, newMessage); // Use the repository to add the message
+            await Clients.Group(spaceId).SendAsync("ReceiveMessage", user, message);
         }
 
         public async Task SendReaction(string user, string reaction)
@@ -36,44 +41,12 @@ namespace couchspacesBackend.Hubs
             await _spaceService.AddUserToSpace(spaceId, user);
             await Groups.AddToGroupAsync(Context.ConnectionId, spaceId);
 
-            await _redisDatabase.SetAddAsync($"spaceUsers:{spaceId}", Context.ConnectionId);
-
             await Clients.Group(spaceId).SendAsync("UserJoined", user);
-            await UpdateUserCounts(spaceId);
-        }
+            //await UpdateUserCounts(spaceId);
 
-        public async Task LeaveSpace(string spaceId, User user)
-        {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, spaceId);
-
-            await _redisDatabase.SetRemoveAsync($"spaceUsers:{spaceId}", Context.ConnectionId);
-            await _redisDatabase.SetRemoveAsync($"readyUsers:{spaceId}", Context.ConnectionId);
-
-            await Clients.Group(spaceId).SendAsync("UserLeft", user);
-            await UpdateUserCounts(spaceId);
-        }
-
-        public async Task UserReady(string spaceId, bool isReady)
-        {
-            if (isReady)
-            {
-                await _redisDatabase.SetAddAsync($"readyUsers:{spaceId}", Context.ConnectionId);
-            }
-            else
-            {
-                await _redisDatabase.SetRemoveAsync($"readyUsers:{spaceId}", Context.ConnectionId);
-            }
-
-            await UpdateUserCounts(spaceId);
-        }
-
-        private async Task UpdateUserCounts(string spaceId)
-        {
-            var totalUserCount = await _redisDatabase.SetLengthAsync($"spaceUsers:{spaceId}");
-            var readyUserCount = await _redisDatabase.SetLengthAsync($"readyUsers:{spaceId}");
-
-            await Clients.Group(spaceId).SendAsync("UpdateReadyUserCount", readyUserCount);
-            await Clients.Group(spaceId).SendAsync("UpdateTotalUserCount", totalUserCount);
+            // Load messages from the MessageRepository
+            var messages = await _messageRepository.GetMessagesAsync(spaceId); // Use the repository to get messages
+            await Clients.Caller.SendAsync("LoadMessages", messages);
         }
 
         public override async Task OnConnectedAsync()

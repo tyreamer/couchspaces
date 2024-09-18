@@ -7,11 +7,12 @@
 @inject SpaceService SpaceService
 @inject SignalRService SignalRService
 @inject IJSRuntime JsRuntime
+@inject UserService UserService
 
 <AuthorizeView>
     <Authorized>
         <MudContainer MaxWidth="MaxWidth.Small" Class="mx-auto mt-12">
-            <MudPaper Elevation="2" Class="pa-8" Square>
+            <MudPaper Elevation="2" Class="pa-6 rounded-lg shadow-soft" Style="background-color: #f8f9fa;">
                 <MudGrid>
                     <MudItem xs="2" class="d-flex align-items-right mb-2">
                         <MudTooltip Text="@connectionStatus">
@@ -58,30 +59,33 @@
                         </MudItem>
                     }
                     <MudItem xs="12" class="mb-2">
-                        <UserListComponent SpaceId="spaceId" />
+                        <UserListComponent SpaceId="@spaceId" />
                     </MudItem>
                     <MudItem xs="12" class="mb-2">
-                        <ChatComponent SpaceId="spaceId" />
+                        @if (currentUser != null)
+                        {
+                            <ChatComponent CurrentUser="@currentUser" SpaceId="@spaceId" />
+                        }
                     </MudItem>
                     <MudItem xs="12" class="mb-2">
-                        <ReactionsComponent SpaceId="spaceId" />
+                        <ReactionsComponent SpaceId="@spaceId" />
+                    </MudItem>
+                  @*   <MudItem xs="12" class="mb-2">
+                        <MediaComponent SpaceId="@spaceId" />
                     </MudItem>
                     <MudItem xs="12" class="mb-2">
-                        <MediaComponent SpaceId="spaceId" />
+                        <ShowEventComponent SpaceId="@spaceId" />
                     </MudItem>
                     <MudItem xs="12" class="mb-2">
-                        <ShowEventComponent SpaceId="spaceId" />
+                        <TimestampComponent SpaceId="@spaceId" />
                     </MudItem>
                     <MudItem xs="12" class="mb-2">
-                        <TimestampComponent SpaceId="spaceId" />
-                    </MudItem>
-                    <MudItem xs="12" class="mb-2">
-                        <PlayPauseComponent SpaceId="spaceId" />
+                        <PlayPauseComponent SpaceId="@spaceId" />
                     </MudItem>
                     <MudItem xs="12" class="send-react-container d-flex justify-content-between align-items-center mt-4">
-                        <SendComponent SpaceId="spaceId" />
-                        <ReactComponent SpaceId="spaceId" />
-                    </MudItem>
+                        <SendComponent SpaceId="@spaceId" />
+                        <ReactComponent SpaceId="@spaceId" />
+                    </MudItem> *@
                     </MudGrid>
                 </MudPaper>
             </MudContainer>
@@ -106,11 +110,14 @@
     private int readyUserCount = 0;
     private int totalUserCount = 0;
     private bool countdownStarted = false;
+    private User currentUser;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            currentUser = await UserService.GetUserAsync();
+
             // Retrieve the space name using the spaceId
             var space = await SpaceService.GetSpace(spaceId);
 
@@ -119,14 +126,15 @@
                 spaceName = space.Name ?? string.Empty;
                 streamingLink = space.StreamingLink ?? string.Empty;
                 streamingPlatform = space.StreamingPlatform ?? string.Empty;
-                spaceType = space.ContentType;
-                contentTitle = space.ContentTitle;
+                spaceType = space.ContentType ?? ContentType.Other;
+                contentTitle = space.ContentTitle ?? string.Empty;
 
                 SignalRService.OnReadyUserCountUpdated += UpdateReadyUserCount;
                 SignalRService.OnTotalUserCountUpdated += UpdateTotalUserCount;
                 SignalRService.OnConnectionStatusChanged += UpdateConnectionStatus;
 
                 await SignalRService.StartConnectionAsync();
+                await SignalRService.JoinSpace(spaceId, currentUser);
             }
         }
         catch (Exception ex)
@@ -156,14 +164,14 @@
     private async Task OnReadyPress()
     {
         isReady = true;
-        await SignalRService.SetUserReady(spaceId, "userId", true); // Replace "userId" with actual user ID
+        await SignalRService.SetUserReady(spaceId, currentUser.Id, true);
         CheckAllUsersReady();
     }
 
     private async Task OnReadyRelease()
     {
         isReady = false;
-        await SignalRService.SetUserReady(spaceId, "userId", false); // Replace "userId" with actual user ID
+        await SignalRService.SetUserReady(spaceId, currentUser.Id, false);
     }
 
     private void CheckAllUsersReady()

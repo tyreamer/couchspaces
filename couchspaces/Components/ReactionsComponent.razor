@@ -3,7 +3,7 @@
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<MudButton OnClick="SendReaction" Variant="Variant.Filled">React</MudButton>
+<MudFab Icon="@Icons.Material.Filled.ThumbUp" OnClick="SendReaction" Color="Color.Primary" IconColor="Color.Secondary" Class="react-button" />
 
 @code {
     [Parameter]

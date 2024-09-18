@@ -1,4 +1,5 @@
 ﻿using couchspacesShared.Models;
+using FirebaseAdmin.Messaging;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
 
@@ -9,6 +10,7 @@ namespace couchspacesBackend.Controllers
     public class SpaceController : ControllerBase
     {
         private static readonly ConcurrentDictionary<string, Space> _spaces = new();
+        private static readonly ConcurrentDictionary<string, List<couchspacesShared.Models.Message>> _messages = new();
 
         [HttpPost]
         public IActionResult CreateSpace([FromBody] Space space)
@@ -41,6 +43,27 @@ namespace couchspacesBackend.Controllers
             {
                 space.Users.Add(user);
                 return Ok();
+            }
+            return NotFound();
+        }
+
+        [HttpPost("{spaceId}/messages")]
+        public IActionResult AddMessage(string spaceId, [FromBody] couchspacesShared.Models.Message message)
+        {
+            if (!_messages.ContainsKey(spaceId))
+            {
+                _messages[spaceId] = new List<couchspacesShared.Models.Message>();
+            }
+            _messages[spaceId].Add(message);
+            return Ok();
+        }
+
+        [HttpGet("{spaceId}/messages")]
+        public IActionResult GetMessages(string spaceId)
+        {
+            if (_messages.TryGetValue(spaceId, out var messages))
+            {
+                return Ok(messages);
             }
             return NotFound();
         }
