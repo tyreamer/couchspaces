@@ -57,17 +57,6 @@
         }
     }
 
-    private async Task CheckAuthenticationState()
-    {
-        var userName = await UserService.GetUsernameAsync();
-        Console.WriteLine($"User is authenticated: {userName}");
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await CheckAuthenticationState();
-    }
-
     private void Explore()
     {
         Navigation.NavigateTo("/explore");

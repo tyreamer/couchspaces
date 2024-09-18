@@ -1,41 +1,65 @@
-﻿@using couchspacesShared.Services
+﻿@using couchspacesShared.Models
+@using couchspacesShared.Services
 @inject SignalRService SignalRService
-@inject UserService UserService
 
-<MudTextField @bind-Value="message" Label="Message" />
-<MudButton OnClick="SendMessage" Variant="Variant.Filled">Send</MudButton>
-<MudList T="string">
+<MudTextField @bind-Value="message" Label="Message" Class="message-input" />
+<MudButton OnClick="SendMessage" Variant="Variant.Filled" Class="send-button">Send</MudButton>
+
+<MudList T="Message">
     @foreach (var msg in messages)
     {
-        <MudListItem>@msg</MudListItem>
+        <MudListItem>
+            @if (msg.User == CurrentUser?.Id)
+            {
+                <MudText Typo="Typo.body1" Color="Color.Primary">You: @msg.Content</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1">@msg.User: @msg.Content</MudText>
+            }
+        </MudListItem>
     }
 </MudList>
 
 @code {
     [Parameter]
-    public string SpaceId { get; set; }
+    public User? CurrentUser { get; set; }
 
-    private string message;
-    private List<string> messages = new List<string>();
-    private string userFirstName;
+    [Parameter]
+    public required string SpaceId { get; set; }
+
+    private string message = string.Empty;
+    private List<Message> messages = new List<Message>();
 
     protected override async Task OnInitializedAsync()
     {
-        userFirstName = await UserService.GetUsernameAsync();
-
-        SignalRService.OnMessageReceived += (user, message) =>
+        if (CurrentUser == null)
         {
-            var encodedMsg = $"{user}: {message}";
-            messages.Add(encodedMsg);
+            throw new InvalidOperationException("CurrentUser must be provided.");
+        }
+
+        SignalRService.OnMessageReceived += (user, content) =>
+        {
+            var newMessage = new Message { User = user, Content = content };
+            messages.Add(newMessage);
             InvokeAsync(StateHasChanged);
         };
+
+        SignalRService.OnLoadMessages += (loadedMessages) =>
+        {
+            messages = loadedMessages;
+            InvokeAsync(StateHasChanged);
+        };
+
+        // Ensure the SignalR connection is started
+        await SignalRService.EnsureConnectionStartedAsync();
     }
 
     private async Task SendMessage()
     {
         if (!string.IsNullOrEmpty(message))
         {
-            await SignalRService.SendMessage(userFirstName, message);
+            await SignalRService.SendMessage(SpaceId, CurrentUser.Id, message);
             message = string.Empty;
         }
     }

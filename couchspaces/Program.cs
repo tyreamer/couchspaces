@@ -6,6 +6,7 @@ using couchspaces;
 using MudBlazor.Services;
 using couchspacesShared.Services;
 using MudBlazor;
+using couchspacesShared.Repositories;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

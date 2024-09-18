@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using couchspacesShared.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace couchspacesShared.Services
@@ -8,12 +9,14 @@ namespace couchspacesShared.Services
     public class SignalRService : IAsyncDisposable
     {
         public HubConnection HubConnection { get; private set; }
+        public HubConnectionState ConnectionState => HubConnection.State;
 
         public event Action<int>? OnReadyUserCountUpdated;
         public event Action<int>? OnTotalUserCountUpdated;
         public event Action<string>? OnConnectionStatusChanged;
         public event Action<string, string>? OnMessageReceived;
         public event Action<string, string>? OnReactionReceived;
+        public event Action<List<Message>>? OnLoadMessages;
 
         public SignalRService(string hubUrl)
         {
@@ -61,6 +64,11 @@ namespace couchspacesShared.Services
                 OnReactionReceived?.Invoke(user, reaction);
             });
 
+            HubConnection.On<List<Message>>("LoadMessages", (messages) =>
+            {
+                OnLoadMessages?.Invoke(messages);
+            });
+
             HubConnection.Closed += async (error) =>
             {
                 OnConnectionStatusChanged?.Invoke("Disconnected");
@@ -95,9 +103,17 @@ namespace couchspacesShared.Services
             }
         }
 
-        public async Task SendMessage(string user, string message)
+        public async Task EnsureConnectionStartedAsync()
         {
-            await HubConnection.SendAsync("SendMessage", user, message);
+            if (HubConnection.State == HubConnectionState.Disconnected)
+            {
+                await StartConnectionAsync();
+            }
+        }
+
+        public async Task SendMessage(string spaceId, string user, string message)
+        {
+            await HubConnection.SendAsync("SendMessage", spaceId, user, message);
         }
 
         public async Task SendReaction(string user, string reaction)

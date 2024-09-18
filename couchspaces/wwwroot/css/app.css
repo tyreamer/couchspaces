@@ -195,3 +195,30 @@ body {
 .google-sign-in-button:hover {
     background-color: #357ae8;
 }
+
+.message-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #f8f9fa;
+    padding: 10px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.message-input {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.send-button {
+    margin-right: 10px;
+}
+
+.react-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
